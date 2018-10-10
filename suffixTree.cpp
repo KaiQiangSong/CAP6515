@@ -1,156 +1,188 @@
 #include <iostream>
 #include <string>
 #include <map>
-
+#include <string>
 #include <cstdio>
 #include <cstring>
 
 using namespace std;
 
+class Node;
 typedef map<char, Node*> MAP;
 
 class Node
 {
-    public:
-    int start, *end;
-    MAP *childern;
-    Node * suffixLink;
+	public:
+	int start, *end, id;
+	MAP children;
+	Node * suffixLink;
+	
 
-    Node():{
-        start = 0, end = NULL;
-        Children = new MAP;
-        suffixLink = NULL;
-    }
-    int edgeLength()
-    {
-        return *end - start + 1;
-    }
-    static Node* newNode(int start, int *end)
-    {
-        Node *node = new Node;
-        node -> start = start;
-        node -> end = end;
-        node -> suffixLink = NULL;
-        return node
-    }
+	Node():start(0), end(NULL), suffixLink(NULL), children(MAP()){
+	}
+	int edgeLength()
+	{
+		return *end - start + 1;
+	}
+	static Node* newNode(int start, int *end)
+	{
+		static int number = 0;
+		Node *node = new Node;
+		node -> start = start;
+		node -> end = end;
+		node -> suffixLink = NULL;
+		node -> id = number;
+		number += 1;
+		cout << "New Node " << node ->id << endl;
+		cout << "START " << node ->start << endl; 
+		return node;
+	}
 };
 
-
-typedef Node
 
 class SuffixTree{
-    private:
-    
-    Node* Root;
-    Node* activeNode;
-    int activeEdge; //Remember the start position of the String
-    int activeLength; //Remember the length of the active edge
-    int remainder;
-    int leafEnd;
+	private:
+	
+	Node* Root;
+	Node* activeNode;
+	
+	int activeEdge; //Remember the start position of the String
+	int activeLength; //Remember the length of the active edge
+	int remainder;
+	int leafEnd;
 	char* S;
-    
-    public:
-    
-    SuffixTree():Root(NULL),activeNode(NULL), S(NULL), activeEdge(0), activeLength(0),remainder(0),leafEnd(-1){}
-    
-    inline void goDown()
-    {
-        Node* nextNode = activeNode -> children[S[activeEdge]];
-        
-        edgeLength = nextNode.edgeLength()
-        if (activeLength >= edgeLength)
-        {
-            activeEdge += edgeLength;
-            activeLength -= edgeLength;
-            activeNode = nextNode;
-        }
-    }
-    
-    void extend(int pos)
-    {
-        //Extend the end of the string
-        leafEnd = pos;
-        Node* lastNode = NULL;
-        if (activeLength == 0)
-                activeEdge = pos;
-        if (S[activeEdge+activeLength] != S[pos])
-        {
-            while (activeLength > 0)
-			{
-			    Node* nextNode = activeNode -> children[s[activeEdge]];
-			    
-			    //Create Internal Node
-			    int * internalEnd = new int;
-			    *internalEnd = activeEdge + activeLength - 1;
-			    Node* internalNode = Node::newNode(nextNode->start, internalEnd)
-			    
-			    //Change Links
-			    internalNode -> children[S[*internalEnd + 1]] = nextNode;
-			    activeNode -> children[S[activeEdge]] = internalNode;
-			    
-			    //Create newNode
-			    internalNode -> children[S[pos]] = Node::newNode(pos, &leafEnd);
-			    
-			    if (lastNode != NULL)
-			    {
-			        lastNode -> suffixLink = internalNode;
-			    }
-			    
-			    lastNode = internalNode;
-			    if (activeNode -> suffixLink == NULL)
-			    {
-			        // activeEdge_old - activeNode_old -> start = activeEdge_new - activeNode_new -> start
-			        // activeEdge_new = activeEdge_old + (activeNode_new -> start - activeNode_old -> start)
-			        //Node *linkNode = activeNode -> suffixLink;
-			        //#activeEdge += linkNode -> start - activeNode -> start;
-			        activeNode = activeNode -> suffixLink;
-			    } else
-			    {
-			        activeEdge ++;
-    			    activeLength --;
-    			}
-			}
-        }
-        if (activeNode -> children.find(S[pos]) == activeNode->children.end())
-        {
-			//Rule 2 (New leafNode under activeNode)
-            activeNode -> children[S[pos]] = Node::newNode(pos, &leafEnd);
-        } else 
-        {
-            activeLength += 1
-            remainder += 1
-            goDown()   
-        }
-        
-        while (remainder > 0)
-        {
+	
+	public:
+	
+	SuffixTree():Root(NULL),activeNode(NULL), S(NULL), activeEdge(-1), activeLength(0),remainder(0),leafEnd(-1){}
+	
+	int goDown(Node* nextNode)
+	{
+		//Node* nextNode = activeNode -> children[S[activeEdge]];
+		int edgeLength = nextNode->edgeLength();
+		if (activeLength >= edgeLength)
+		{
+			activeEdge += edgeLength;
+			activeLength -= edgeLength;
+			activeNode = nextNode;
+			return 1;
+		}
+		return 0;
+	}
 
-            
-			// No Child or No child going with s[pos] under the activeNode
-            if ((activeNode -> children).empty() or (activeNode -> children.find(s[pos])) != (activeNode ->children.end()))
-            {
-				//Rule 2 (New leafNode under activeNode)
-                activeNode -> children[s[pos]] = &Node::newNode(pos, &leafEnd);
-				if (lastnewNode != NULL)
+	void CheckPrint(char *s)
+	{
+		cout << s << endl;
+		cout << activeNode -> id << endl;
+		cout << activeNode -> start << " " <<  *(activeNode -> end) << endl;
+		cout << activeEdge << " " << activeLength << " " << remainder << endl;
+	}
+	
+	void extend(int pos)
+	{
+		//Extend the end of the string
+		leafEnd = pos;
+		Node* lastNode = NULL;
+		
+		
+		remainder ++;
+		Node* lastInternalNode = NULL;
+		while (remainder > 0)
+		{
+			if (activeLength == 0)
+				activeEdge = pos;
+			
+			//There is no outgoing Edge from activeNode starting with activeNode
+			if ((activeNode -> children).find(S[activeEdge]) == (activeNode -> children).end())
+			{
+				cout << "CREAT NEW BRANCH" << endl;
+				activeNode -> children[S[activeEdge]] = Node::newNode(pos, &leafEnd);
+				if (lastInternalNode != NULL)
 				{
-                    lastNode -> SuffixLink = activeNode;
-                    lastNewNode = NULL;
+					lastInternalNode -> suffixLink = activeNode;
+					lastInternalNode = NULL;
 				}
-            }
-            // There is a child going with s[pos] under the activeNode
-            else
-            {
-                
-                if (goDown(next))
-                {
-                    continue;
-                }
-                if (s[next->start + activeLength] == s[pos])
-                {
-                    
-                }
-            }
-        }
-    }
-    SuffixTree(char *)
+			} else
+			{
+				Node* nextNode = activeNode -> children[S[activeEdge]];
+				if (goDown(nextNode))
+				{
+					cout << "GO DOWN" << endl;
+					continue;
+				}
+				if ( S[nextNode ->start + activeLength] == S[pos])
+				{
+					cout << "Mark and goon" << endl;
+					if ((lastInternalNode != NULL) && (activeNode != Root))
+					{
+						lastInternalNode -> suffixLink = activeNode;
+						lastInternalNode = NULL;
+					}
+					activeLength ++;
+					CheckPrint("\nSTEP");
+					break;
+				}
+
+				cout << "SPLIT" << endl;
+				//Create Internal Node
+				int* internalEnd = new int;
+				*internalEnd = nextNode -> start +activeLength - 1;
+				Node* internalNode = Node::newNode(nextNode -> start, internalEnd);
+				nextNode -> start = *internalEnd + 1;
+
+				//Change the Link
+				internalNode -> children[S[pos]] = Node::newNode(pos, &leafEnd);
+				internalNode -> children[S[nextNode -> start]] = nextNode;
+				activeNode -> children[S[activeEdge]] = internalNode;
+
+				if (lastInternalNode != NULL)
+					lastInternalNode -> suffixLink = internalNode;
+				
+				lastInternalNode = internalNode;
+			}
+			remainder --;
+			if ((activeNode == Root) && (activeLength > 0))
+			{
+				activeLength -= 1;
+				activeEdge = pos - remainder + 1;
+			} else if (activeNode != Root)
+			{
+				activeNode = activeNode -> suffixLink;
+			}
+			CheckPrint("\nSTEP");
+		}
+	}
+	SuffixTree(char* text){
+		cout << "Using Construct Method" << endl;
+		S = text;
+		int *t = new int;
+		*t = -1;
+		Root = Node::newNode(-1, t);
+
+		activeNode = Root;
+		
+		activeEdge = -1;
+		activeLength = 0;
+		
+		remainder = 0;
+
+		int L = strlen(S);
+		for (int i = 0; i < L; ++ i)
+		{
+			cout << "Extending " << i << " " << S[i] << endl;
+			extend(i);
+			cout << endl;
+		}
+	};
 };
+
+int main()
+{
+	char * a="xabxabxacxacxab$";
+
+	SuffixTree T(a);
+
+	printf("%s\n",a);
+	cout << a << endl;
+	return 0;
+}
