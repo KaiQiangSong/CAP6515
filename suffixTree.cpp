@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <queue>
 #include <string>
 #include <cstdio>
 #include <cstring>
@@ -9,6 +10,7 @@ using namespace std;
 
 class Node;
 typedef map<char, Node*> MAP;
+typedef queue<Node*> QUEUE;
 
 class Node
 {
@@ -178,6 +180,40 @@ class SuffixTree{
 			extend(i);
 			cout << endl;
 		}
+	};
+	void printNode(int st, int ed)
+	{
+		for (;st <= ed; ++ st)
+			cout << S[st];
+	}
+	void printDFS(Node* node, int height)
+	{
+		if (node == NULL) return;
+		if (node != Root)
+		{
+			printNode(node -> start, *(node -> end));
+		}
+		bool leaf = true;
+		for (auto it = (node -> children).begin(); it != (node -> children).end(); ++it)
+		{
+			if (leaf && node != Root)
+				cout << "[" << n->suffixLink->id << "]" << endl;
+			leaf = false;
+			printDFS(it -> second, height + edgeLength(it -> second));
+		}
+		if (leaf)
+			cout << cout << "[" << n->suffixLink->id << "]" << endl;
+	};
+	void deleteDFS(Node* node)
+	{
+		if (node == NULL) return;
+		for (auto it = (node -> children).begin(); it != (node -> children).end(); ++it)
+			deleteDFS(it -> second);
+		delete node;
+	}
+	~SuffixTree()
+	{
+		deleteDFS(Root);
 	};
 };
 
