@@ -24,13 +24,13 @@ class Node
 	{
 		return *end - start + 1;
 	}
-	static Node* newNode(int start, int *end)
+	static Node* newNode(int start, int *end, Node* Root)
 	{
 		static int number = 0;
 		Node *node = new Node;
 		node -> start = start;
 		node -> end = end;
-		node -> suffixLink = NULL;
+		node -> suffixLink = Root;
 		node -> id = number;
 		number += 1;
 		cout << "New Node " << node ->id << endl;
@@ -73,9 +73,13 @@ class SuffixTree{
 	void CheckPrint(char *s)
 	{
 		cout << s << endl;
-		cout << activeNode -> id << endl;
-		cout << activeNode -> start << " " <<  *(activeNode -> end) << endl;
-		cout << activeEdge << " " << activeLength << " " << remainder << endl;
+		if (activeNode == NULL)
+			cout << "ERROR" << endl;
+		else{
+			cout << activeNode -> id << endl;
+			cout << activeNode -> start << " " <<  *(activeNode -> end) << endl;
+			cout << activeEdge << " " << activeLength << " " << remainder << endl;
+		}
 	}
 	
 	void extend(int pos)
@@ -95,8 +99,9 @@ class SuffixTree{
 			//There is no outgoing Edge from activeNode starting with activeNode
 			if ((activeNode -> children).find(S[activeEdge]) == (activeNode -> children).end())
 			{
-				cout << "CREAT NEW BRANCH" << endl;
-				activeNode -> children[S[activeEdge]] = Node::newNode(pos, &leafEnd);
+				cout << "RULE 2: CREAT NEW BRANCH OF LEAF NODE" << endl;
+
+				activeNode -> children[S[activeEdge]] = Node::newNode(pos, &leafEnd, Root);
 				if (lastInternalNode != NULL)
 				{
 					lastInternalNode -> suffixLink = activeNode;
@@ -112,7 +117,8 @@ class SuffixTree{
 				}
 				if ( S[nextNode ->start + activeLength] == S[pos])
 				{
-					cout << "Mark and goon" << endl;
+					cout << "RULE 3: Already in the Tree, MARK and GOON" << endl;
+
 					if ((lastInternalNode != NULL) && (activeNode != Root))
 					{
 						lastInternalNode -> suffixLink = activeNode;
@@ -123,15 +129,15 @@ class SuffixTree{
 					break;
 				}
 
-				cout << "SPLIT" << endl;
+				cout << "RULE 2: CREAT NEW BRANCH AND SPLIT" << endl;
 				//Create Internal Node
 				int* internalEnd = new int;
 				*internalEnd = nextNode -> start +activeLength - 1;
-				Node* internalNode = Node::newNode(nextNode -> start, internalEnd);
+				Node* internalNode = Node::newNode(nextNode -> start, internalEnd, Root);
 				nextNode -> start = *internalEnd + 1;
 
 				//Change the Link
-				internalNode -> children[S[pos]] = Node::newNode(pos, &leafEnd);
+				internalNode -> children[S[pos]] = Node::newNode(pos, &leafEnd, Root);
 				internalNode -> children[S[nextNode -> start]] = nextNode;
 				activeNode -> children[S[activeEdge]] = internalNode;
 
@@ -157,13 +163,12 @@ class SuffixTree{
 		S = text;
 		int *t = new int;
 		*t = -1;
-		Root = Node::newNode(-1, t);
+		Root = Node::newNode(-1, t, NULL);
 
 		activeNode = Root;
 		
 		activeEdge = -1;
 		activeLength = 0;
-		
 		remainder = 0;
 
 		int L = strlen(S);
@@ -178,7 +183,7 @@ class SuffixTree{
 
 int main()
 {
-	char * a="xabxabxacxacxab$";
+	char * a="xabxababxba$";
 
 	SuffixTree T(a);
 
